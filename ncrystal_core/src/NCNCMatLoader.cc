@@ -455,7 +455,7 @@ void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::
         nc_assert(msd.size()==whkl.size());
 
         //calculate |F|^2
-        double real=0., img=0.;
+        double real=0., img=0., real_LEAPR= 0., img_LEAPR=0.;
         for(unsigned i=0;i<whkl.size();i++)
           {
             if ( whkl[i] > whkl_thresholds[i])
@@ -471,9 +471,12 @@ void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::
                 double phase=hkl.dot(*itAtomPos)*(2.0*M_PI);
                 real += cos(phase)*factor;
                 img += sin(phase)*factor;
+                real_LEAPR += csl[i]*cos(phase);
+                img_LEAPR += csl[i]*sin(phase);
               }
           }
         double FSquared = (real*real+img*img);
+        double FSquared_LEAPR = (real_LEAPR*real_LEAPR+img_LEAPR*img_LEAPR);
 
         //skip weak or impossible reflections:
         if(FSquared<1e-5)//NB: Hardcoded to same value as in .nxs factory (also note the threshold cut above for early abort)
@@ -513,6 +516,7 @@ void NCrystal::NCMatLoader::fillHKL( NCrystal::Info &info,  const std::map<std::
           hi.k=loop_k;
           hi.l=loop_l;
           hi.fsquared = FSquared;
+          hi.fsquared_LEAPR = FSquared_LEAPR;
           hi.dspacing = dspacing;
           hi.demi_normals.push_back(HKLInfo::Normal(waveVector.x(),waveVector.y(),waveVector.z()));
           fsq2hklidx.insert(itSearchLB,FamMap::value_type(searchkey,hkllist.size()));
