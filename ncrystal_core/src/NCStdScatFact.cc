@@ -33,6 +33,7 @@
 #include "NCrystal/NCLCBragg.hh"
 #include "NCrystal/NCBkgdPhonDebye.hh"
 #include "NCrystal/NCBkgdExtCurve.hh"
+#include "NCrystal/NCBkgdACE.hh"
 
 namespace NCrystal {
 
@@ -163,7 +164,9 @@ namespace NCrystal {
         }
       }
 
-      nc_assert_always( ! bkgdphondebye_domodelde || ( bkgd == "phonondebye" ) );
+      // JIMD TODO: CHECK assert
+
+      nc_assert_always( ! bkgdphondebye_domodelde || ( bkgd == "phonondebye" ) || ( bkgd == "acefile" ));
       nc_assert_always( ! ( bkgdcurve_dothermalise && bkgdphondebye_domodelde ) );
 
       //Common options for modes needing phonzeroinco flags:
@@ -195,7 +198,11 @@ namespace NCrystal {
                                                   !opt_no_pzi,
                                                   opt_only_pzi,
                                                   cfg.get_bkgdopt_flag("no_extrap") ) );
-      } else {
+      } else if ( bkgd == "acefile") {
+          // JIMD TODO: agregar modelo de muestreo ACE
+          sc.obj()->addComponent(new BkgdACE(info.obj()));
+      }
+      else {
         nc_assert_always(bkgd=="none");
       }
 
@@ -250,6 +257,9 @@ namespace NCrystal {
           bkgd = "phonondebye";
         } else if (info.obj()->providesNonBraggXSects()) {
           bkgd="external";
+        } else if (cfg.getDataFileExtension()=="ace") {
+            // JIMD TODO: CHECK inelastic distribution
+            bkgd="acefile";
         } else {
           bkgd="none";
         }
@@ -267,6 +277,7 @@ namespace NCrystal {
           return false;
         return true;
       }
+
       return false;//bkgd mode which is not support by this factory
     }
 

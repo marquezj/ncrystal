@@ -100,6 +100,9 @@ extern "C" void ncrystal_register_ncmat_factory();
 #ifdef NCRYSTAL_ENABLE_NXSLAZ
 extern "C" void ncrystal_register_nxslaz_factories();
 #endif
+#ifndef NCRYSTAL_DISABLE_ACE
+extern "C" void ncrystal_register_ace_factory();
+#endif
 
 NCrystal::FactoryList& NCrystal::getFactories()
 {
@@ -117,6 +120,9 @@ NCrystal::FactoryList& NCrystal::getFactories()
 #endif
 #ifdef NCRYSTAL_ENABLE_NXSLAZ
     ncrystal_register_nxslaz_factories();
+#endif
+#ifndef NCRYSTAL_DISABLE_ACE
+    ncrystal_register_ace_factory();
 #endif
   }
   return getRegistry()->factories;

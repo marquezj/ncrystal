@@ -24,7 +24,7 @@
 #include "NCrystal/NCDefs.hh"
 #include <vector>
 #include <stdint.h>//cstdint hdr only in C++11
-
+#include <map>
 
 //////////////////////////////////////////////////////////////////////
 // Data class containing information (high level or derived) about  //
@@ -82,6 +82,14 @@ namespace NCrystal {
     HKLInfo(const HKLInfo &&o);
     HKLInfo& operator=(HKLInfo &&o);
 #endif
+
+  };
+
+  struct NCRYSTAL_API ACEData {
+    std::map<double, double> xs;
+    std::map<double, std::vector<double>> inel_enerdist;
+    std::map<double, std::map<double, std::vector<double>>> inel_angdist;
+    std::map<double, double> xs_el;
   };
 
   typedef std::vector<HKLInfo> HKLList;
@@ -153,6 +161,13 @@ namespace NCrystal {
 
     bool hasTemperature() const;
     double getTemperature() const;
+
+    //////////////
+    // ACE Data //
+    //////////////
+
+    bool hasACEData() const;
+    ACEData getACEData() const;
 
     /////////////////////////////////
     // Debye temperature [kelvin]  //
@@ -231,6 +246,7 @@ namespace NCrystal {
     void setXSectFree(double x) { ensureNoLock(); m_xsect_free = x; }
     void setXSectAbsorption(double x) { ensureNoLock(); m_xsect_absorption = x; }
     void setTemperature(double t) { ensureNoLock(); m_temp = t; }
+    void setACEData(ACEData data) { ensureNoLock(); m_acedata = data; }
     void setDebyeTemperature(double dt) { ensureNoLock(); m_debyetemp = dt; }
     void setDensity(double d) { ensureNoLock(); m_density = d; }
     void setXSectProvider(XSectProvider*xp) { ensureNoLock(); m_xsectprovider = xp; }//assumes ownership
@@ -246,6 +262,7 @@ namespace NCrystal {
     StructureInfo m_structinfo;
     AtomList m_atomlist;
     HKLList m_hkllist;//sorted by dspacing first
+    ACEData m_acedata;
     double m_hkl_dlower;
     double m_hkl_dupper;
     double m_density;
@@ -275,6 +292,8 @@ namespace NCrystal {
   inline bool Info::providesNonBraggXSects() const { return m_xsectprovider!=0; }
   inline double Info::xsectScatNonBragg(double lambda) const  { return m_xsectprovider->xsectScatNonBragg(lambda); }
   inline bool Info::hasTemperature() const { return m_temp > 0.0; }
+  inline bool Info::hasACEData() const { return m_acedata.xs.size() > 0; } // JIMD TODO: mejorar chequeo
+  inline ACEData Info::getACEData() const { return m_acedata; }
   inline bool Info::hasDebyeTemperature() const { return m_debyetemp > 0.0; }
   inline double Info::getTemperature() const { nc_assert(hasTemperature()); return m_temp; }
   inline double Info::getDebyeTemperature() const { nc_assert(hasDebyeTemperature()); return m_debyetemp; }
