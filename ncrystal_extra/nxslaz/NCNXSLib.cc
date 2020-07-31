@@ -408,6 +408,60 @@ double nxs_calcFSquare( NXS_HKL *hklReflex, NXS_UnitCell *uc )
 }
 
 
+/**
+ * \fn nxs_calcFSquare_LEAPR( NXS_HKL *hklReflex, NXS_UnitCell* uc )
+ * \brief Calculates the structure factor squared |F<sub>hkl</sub>|<sup>2</sup>.
+ *
+ * This function calculates the structure factor squared depending on the hkl Miller indices, given
+ * via NXS_HKL, and on the crystal system, given via the NXS_UnitCell, without the Debye-Waller factor 
+ * as required by LEAPR.
+ *
+ * @param hklReflex NXS_HKL struct
+ * @param uc NXS_UnitCell struct
+ * @return |F<sub>hkl</sub>|<sup>2</sup>
+ */
+double nxs_calcFSquare_LEAPR( NXS_HKL *hklReflex, NXS_UnitCell *uc )
+{
+  unsigned int i, j;
+  int h = hklReflex->h;
+  int k = hklReflex->k;
+  int l = hklReflex->l;
+  double dhkl = hklReflex->dhkl;
+
+  double structure_factor_square_LEAPR = 0.0;
+  double real = 0.0;
+  double imag = 0.0;
+
+  for( i=0; i<uc->nAtomInfo; i++ )
+  {
+    double sin_exp = 0.0;
+    double cos_exp = 0.0;
+
+    for( j=0; j<uc->atomInfoList[i].nAtoms; j++ )
+    {
+      double x = uc->atomInfoList[i].x[j];
+      double y = uc->atomInfoList[i].y[j];
+      double z = uc->atomInfoList[i].z[j];
+
+      if( fabs(x+y+z)<1E-6 )
+        cos_exp += 1.0;
+      else
+      {
+        double exponent = 2.0*M_PI*(x*h+y*k+z*l);
+        sin_exp += sin( exponent );
+        cos_exp += cos( exponent );
+      }
+    }
+    sin_exp *= uc->atomInfoList[i].b_coherent;
+    cos_exp *= uc->atomInfoList[i].b_coherent;
+    real += cos_exp;
+    imag += sin_exp;
+  }
+  structure_factor_square_LEAPR = (real*real + imag*imag);
+
+  return structure_factor_square_LEAPR;
+}
+
 
 
 /**
@@ -937,6 +991,7 @@ int nxs_initHKL( NXS_UnitCell *uc, int fix_incoh_xs )
     /* get d-spacing and |F|^2 */
     hkl[i].dhkl = nxs_calcDhkl( hkl[i].h, hkl[i].k, hkl[i].l, uc );
     hkl[i].FSquare = nxs_calcFSquare( &(hkl[i]), uc );
+    hkl[i].FSquare_LEAPR = nxs_calcFSquare_LEAPR( &(hkl[i]), uc );
   }
   /* end of initalizing */
 

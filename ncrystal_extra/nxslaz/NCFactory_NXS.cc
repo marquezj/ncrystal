@@ -216,6 +216,7 @@ const NCrystal::Info * NCrystal::loadNXSCrystal( const char * nxs_file,
       hi.multiplicity = it->multiplicity;
       hi.dspacing = it->dhkl;
       hi.fsquared = 0.01 * it->FSquare;
+      hi.fsquared_LEAPR = 0.01 * it->FSquare_LEAPR;
       crystal->addHKL(hi);
     }
     //We used to emit a warning here, but decided not to (user should be allowed

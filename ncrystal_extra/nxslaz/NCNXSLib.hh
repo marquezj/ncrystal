@@ -1975,6 +1975,7 @@ typedef struct NXS_HKL {
   unsigned int multiplicity;       /*!< multiplicity of the hkl reflection */
   double dhkl;                     /*!< hkl lattice spacing in &Aring;*/
   double FSquare;                  /*!< \f$|F|^2\f$ (structure factor) */
+  double FSquare_LEAPR;            /*!< \f$|F|^2\f$ (structure factor) w/o Debye Waller */
   NXS_EquivHKL *equivHKL;          /*!< holds the symmetry equivalent reflections including the current indices */
 } NXS_HKL;
 
@@ -2055,6 +2056,7 @@ int nxs_addAtomInfo( NXS_UnitCell *uc, NXS_AtomInfo ai );
 int nxs_initHKL( NXS_UnitCell *uc, int fix_incoh_xs );
 double nxs_calcDhkl( int h, int k, int l, NXS_UnitCell *uc );
 double nxs_calcFSquare( NXS_HKL *hklReflex, NXS_UnitCell *uc );
+double nxs_calcFSquare_LEAPR( NXS_HKL *hklReflex, NXS_UnitCell *uc );
 /*****************************************************************************/
 
 

@@ -57,6 +57,7 @@ NCrystal::HKLInfo& NCrystal::HKLInfo::operator=(NCrystal::HKLInfo &&o)
   }
   dspacing = o.dspacing;
   fsquared = o.fsquared;
+  fsquared_LEAPR = o.fsquared_LEAPR;
   h = o.h;
   k = o.k;
   l = o.l;
@@ -84,6 +85,7 @@ NCrystal::HKLInfo& NCrystal::HKLInfo::operator=(const NCrystal::HKLInfo &o)
   }
   dspacing = o.dspacing;
   fsquared = o.fsquared;
+  fsquared_LEAPR = o.fsquared_LEAPR;
   h = o.h;
   k = o.k;
   l = o.l;

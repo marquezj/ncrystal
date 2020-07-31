@@ -163,6 +163,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   std::vector<double> csl;//coherent scattering length
   std::vector<double> msd;//mean squared displacement
   std::vector<double> cache_factors;
+  std::vector<double> cache_factors_LEAPR;
 
   AtomList::const_iterator it (info.atomInfoBegin()), itE(info.atomInfoEnd());
   for (;it!=itE;++it) {
@@ -186,6 +187,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
   nc_assert_always(msd.size()==atomic_pos.size());
   nc_assert_always(msd.size()==csl.size());
   cache_factors.resize(csl.size(),0.0);
+  cache_factors_LEAPR.resize(csl.size(),0.0);
 
   //cache some thresholds for efficiency (see below where it is used for more
   //comments):
@@ -243,6 +245,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         for( unsigned i=0; i < whkl.size(); ++i ) {
           if ( whkl[i] > whkl_thresholds[i]) {
             cache_factors[i] = 0.0;
+            cache_factors_LEAPR[i] = 0.0;
             continue;//Abort early to save exp/cos/sin calls. Note that
                      //O(fsquarecut) here corresponds to O(fsquarecut^2)
                      //contributions to final FSquared - for which we demand
@@ -250,7 +253,9 @@ void NCrystal::fillHKL( NCrystal::Info &info,
                      //(see calculations for whkl_thresholds above).
           } else {
             double factor = csl[i]*std::exp(-whkl[i]);
+            double factor_LEAPR = csl[i];
             cache_factors[i] = factor;
+            cache_factors_LEAPR[i] = factor_LEAPR;
             //Assuming cos(phase)=sin(phase)=1 gives us a cheap upper limit on
             //fsquared:
             real_or_imag_upper_limit += atomic_pos[i].size()*factor;
@@ -265,9 +270,10 @@ void NCrystal::fillHKL( NCrystal::Info &info,
         //Time to calculate phases and sum up contributions. Use numerically
         //stable summation, for better results on low-symmetry crystals (the
         //main cost here is anyway the phase calculations, not the summation):
-        StableSum real, imag;
+        StableSum real, imag, real_LEAPR, imag_LEAPR;
         for( unsigned i=0 ; i < whkl.size(); ++i ) {
           double factor = cache_factors[i];
+          double factor_LEAPR = cache_factors_LEAPR[i];
           if (!factor)
             continue;
           std::vector<Vector>::const_iterator itAtomPos(atomic_pos[i].begin()), itAtomPosEnd(atomic_pos[i].end());
@@ -281,10 +287,15 @@ void NCrystal::fillHKL( NCrystal::Info &info,
           }
           real.add(cpsum.sum() * factor);
           imag.add(spsum.sum() * factor);
+          real_LEAPR.add(cpsum.sum() * factor_LEAPR);
+          imag_LEAPR.add(spsum.sum() * factor_LEAPR);
         }
         double realsum = real.sum();
         double imagsum = imag.sum();
+        double realsum_LEAPR = real_LEAPR.sum();
+        double imagsum_LEAPR = imag_LEAPR.sum();
         double FSquared = (realsum*realsum+imagsum*imagsum);
+        double FSquared_LEAPR = (realsum_LEAPR*realsum_LEAPR+imagsum_LEAPR*imagsum_LEAPR);
 
         //skip weak or impossible reflections:
         if(FSquared<fsquarecut)
@@ -331,6 +342,7 @@ void NCrystal::fillHKL( NCrystal::Info &info,
           hi.k=loop_k;
           hi.l=loop_l;
           hi.fsquared = FSquared;
+          hi.fsquared_LEAPR = FSquared_LEAPR;
           hi.dspacing = dspacing;
 #if __cplusplus >= 201103L
           hi.demi_normals.emplace_back(waveVector.x(),waveVector.y(),waveVector.z());

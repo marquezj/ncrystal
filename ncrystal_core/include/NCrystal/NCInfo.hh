@@ -55,6 +55,7 @@ namespace NCrystal {
   struct NCRYSTAL_API HKLInfo {
     double dspacing;//angstrom
     double fsquared;//barn
+    double fsquared_LEAPR;//barn (fsquared w/o Debye-Waller factor for LEAPR)
     int h;
     int k;
     int l;
@@ -295,7 +296,7 @@ namespace NCrystal {
   inline double Info::hklDUpper() const { nc_assert(hasHKLInfo()); return m_hkl_dupper; }
   inline bool Info::hasDensity() const { return m_density > 0.0; }
   inline double Info::getDensity() const { nc_assert(hasDensity()); return m_density; }
-  inline HKLInfo::HKLInfo() : dspacing(0.), fsquared(0.), h(0), k(0), l(0),  multiplicity(0), eqv_hkl(0) {}
+  inline HKLInfo::HKLInfo() : dspacing(0.), fsquared(0.), fsquared_LEAPR(0.), h(0), k(0), l(0),  multiplicity(0), eqv_hkl(0) {}
   inline HKLInfo::~HKLInfo() { delete[] eqv_hkl; }
   inline HKLInfo::HKLInfo(const HKLInfo &o) : eqv_hkl(0) { *this = o; }
 }
